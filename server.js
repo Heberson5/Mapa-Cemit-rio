@@ -341,17 +341,21 @@ route('PUT', '/api/admin/config', ({ body }) => {
   for (const k of allowed) if (k in body) cur[k] = body[k];
   setConfig(cur); return { ok: true };
 }, A);
-route('POST', '/api/admin/recenter', ({ body }) => { // desloca todo o mapa para um novo centro
-  const { dLng, dLat } = body;
-  if (![dLng, dLat].every(Number.isFinite)) return { __status: 400, error: 'delta inválido' };
-  const shift = (g) => ({ ...g, coordinates: g.coordinates.map((ring) => ring.map(([x, y]) => [x + dLng, y + dLat])) });
+route('POST', '/api/admin/recenter', ({ body }) => { // desloca / escala / gira todo o layout em torno do centro
+  const dLng = Number(body.dLng ?? 0), dLat = Number(body.dLat ?? 0), scale = Number(body.scale ?? 1), rot = Number(body.rotDeg ?? 0);
+  if (![dLng, dLat, scale, rot].every(Number.isFinite) || scale <= 0 || scale > 20) return { __status: 400, error: 'parâmetros inválidos' };
+  const c0 = getConfig().center, kLat = 111320, kLng = 111320 * Math.cos((c0[1] * Math.PI) / 180);
+  const a = (rot * Math.PI) / 180, cs = Math.cos(a), sn = Math.sin(a);
+  const tf = ([x, y]) => { const dx = (x - c0[0]) * kLng * scale, dy = (y - c0[1]) * kLat * scale;
+    return [+(c0[0] + dLng + (dx * cs - dy * sn) / kLng).toFixed(8), +(c0[1] + dLat + (dx * sn + dy * cs) / kLat).toFixed(8)]; };
+  const shift = (g) => ({ ...g, coordinates: g.coordinates.map((ring) => ring.map(tf)) });
   tx(() => {
     for (const p of db.prepare('SELECT id,geometry FROM plots WHERE geometry IS NOT NULL').all())
       db.prepare('UPDATE plots SET geometry=? WHERE id=?').run(JSON.stringify(shift(JSON.parse(p.geometry))), p.id);
     const c = getConfig();
-    c.center = [c.center[0] + dLng, c.center[1] + dLat];
+    c.center = [c0[0] + dLng, c0[1] + dLat];
     if (c.boundary) c.boundary = shift(c.boundary);
-    if (c.entrance) c.entrance = [c.entrance[0] + dLng, c.entrance[1] + dLat];
+    if (c.entrance) c.entrance = tf(c.entrance);
     setConfig(c);
   });
   return { ok: true };
@@ -471,8 +475,9 @@ const server = http.createServer(async (req, res) => {
   } catch (e) { console.error(e); J(res, { error: e.message }, 500); }
 });
 
-if (db.prepare('SELECT COUNT(*) n FROM plots').get().n === 0 && process.env.NO_DEMO !== '1') {
-  console.log('Banco vazio: criando dados de demonstração…');
+if (!db.prepare("SELECT 1 FROM settings WHERE key='seeded'").get() && process.env.NO_DEMO !== '1' && db.prepare('SELECT COUNT(*) n FROM plots').get().n === 0) {
+  console.log('Banco novo: criando dados de demonstração…');
   seedDemo({ db, TYPES, getConfig, setConfig, norm, tx });
 }
+db.prepare("INSERT OR IGNORE INTO settings(key,value) VALUES('seeded','1')").run();
 server.listen(PORT, () => console.log(`Totem:  http://localhost:${PORT}/\nAdmin:  http://localhost:${PORT}/admin.html  (usuário: ${ADMIN_USER})`));

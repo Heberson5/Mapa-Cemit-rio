@@ -18,9 +18,10 @@ export function seedDemo({ db, TYPES, getConfig, setConfig, norm, tx }) {
     return { type: 'Polygon', coordinates: [[...pts, pts[0]]] };
   };
 
-  const W = 240, H = 330; // terreno
+  // Terreno estreito (≈110 × 230 m, estimado a partir das imagens de satélite): entrada ao sul, anfiteatro ao norte/direita.
+  const W = 110, H = 230;
   const boundary = { type: 'Polygon', coordinates: [[pt(-W / 2, -H / 2), pt(W / 2, -H / 2), pt(W / 2, H / 2), pt(-W / 2, H / 2), pt(-W / 2, -H / 2)]] };
-  setConfig({ ...cfg, boundary, entrance: pt(0, -H / 2 + 4), zoom: 17.3 });
+  setConfig({ ...cfg, boundary, entrance: pt(13, -H / 2 + 3), zoom: 17.6, bearing: 0, pitch: 50 });
 
   const insPlot = db.prepare('INSERT INTO plots(code,type,alameda,quadra,lote,geometry,demo,reserved) VALUES(?,?,?,?,?,?,1,?)');
   const insDec = db.prepare('INSERT INTO deceased(name,name_norm,plot_id,drawer,kind,birth_date,death_date,event_date,responsible,phone,notes,demo) VALUES(?,?,?,?,?,?,?,?,?,?,?,1)');
@@ -41,38 +42,40 @@ export function seedDemo({ db, TYPES, getConfig, setConfig, norm, tx }) {
   }
 
   tx(() => {
-    // 4 quadras (A–D) na parte da frente, cada uma com alamedas; tipo varia por fileira
-    const rowTypes = ['1G', '2G', '3G', '3GS', '6GS', '2G', '3G', '1G'];
-    const blocks = [['A', -118, -150], ['B', 8, -150], ['C', -118, -95], ['D', 8, -95]];
-    for (const [q, bx, by] of blocks) {
-      const cols = 40, colW = 1.2 + 0.45;
-      let y = by;
-      for (let r = 0; r < rowTypes.length; r++) {
-        const type = rowTypes[r], t = TYPES[type], rowH = t.h;
-        const alameda = String(Math.floor(r / 2) + 1);
-        for (let c = 0; c < cols; c++) {
-          const x = bx + c * colW + colW / 2;
-          const code = `${q}-${alameda}-${String(r * cols + c + 1).padStart(3, '0')}`;
-          const reserved = rnd() < 0.05 ? 1 : 0;
-          const id = Number(insPlot.run(code, type, `Alameda ${alameda}`, `Quadra ${q}`, String(r * cols + c + 1), JSON.stringify(rect(x, y + rowH / 2, t.w, rowH, 0)), reserved).lastInsertRowid);
-          if (rnd() < 0.6) fill(id, type, 1 + Math.floor(rnd() * TYPES[type].cap));
+    // 6 alamedas em 3 quadras (gramados à esquerda e à direita da alameda central). Cada alameda = corredor com uma fileira de jazigos de cada lado.
+    // [quadra, x0, x1, y0, [[alameda, tipo]...], ocupação]
+    const quadras = [
+      ['A', -50, -6, -100, [[1, '1G'], [2, '2G']], 0.85],   // sul-esquerda: onde já há sepulturas
+      ['B', -50, -6, -58, [[3, '3G'], [4, '3GS']], 0.3],    // gramado esquerdo (expansão)
+      ['C', 10, 52, -62, [[5, '6GS'], [6, '3G']], 0.2],     // gramado direito (expansão)
+    ];
+    for (const [q, x0, x1, y0, alamedas, occ] of quadras) {
+      const colW = 1.2 + 0.45, cols = Math.floor((x1 - x0) / colW);
+      let y = y0, n = 0;
+      for (const [al, type] of alamedas) {
+        const t = TYPES[type];
+        for (const side of [0, 1]) {            // 0 = fileira sul, 1 = fileira norte (corredor de 2 m entre elas)
+          const cy = y + (side ? t.h + 2 + t.h / 2 : t.h / 2);
+          for (let c = 0; c < cols; c++) {
+            n++;
+            const code = `${q}-${al}-${String(n).padStart(3, '0')}`;
+            const id = Number(insPlot.run(code, type, `Alameda ${al}`, `Quadra ${q}`, String(n), JSON.stringify(rect(x0 + c * colW + colW / 2, cy, t.w, t.h, 0)), rnd() < 0.04 ? 1 : 0).lastInsertRowid);
+            if (rnd() < occ) fill(id, type, 1 + Math.floor(rnd() * TYPES[type].cap));
+          }
         }
-        y += rowH + (r % 2 === 1 ? 5 : 0.9); // alameda (corredor) a cada duas fileiras
+        y += 2 * t.h + 2 + 1.5;
       }
     }
-    // Anfiteatro ao fundo + terrenos familiares ao redor (anéis de blocos 6 gavetas c/ área de serviço)
-    const cx = 0, cy = 125;
-    const rings = [[38, 16], [46, 20], [54, 24]];
+    // Anfiteatro (centro da concha ≈ 33 m a leste, 46 m ao norte) com terrenos familiares em leque ao redor
+    const cx = 33, cy = 46;
     let n = 0;
-    rings.forEach(([R, count], ri) => {
+    [[16, 11], [21, 14], [26, 17]].forEach(([R, count], ri) => {
       for (let i = 0; i < count; i++) {
-        const ang = Math.PI + (i + 0.5) * (Math.PI / count) * -1 + Math.PI; // semicírculo voltado para o fundo
-        const a = Math.PI * (0.06 + (0.88 * i) / (count - 1));            // 0..π (lado norte)
-        const x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
-        const rot = (a * 180) / Math.PI - 90;
+        const a = ((35 + (160 * i) / (count - 1)) * Math.PI) / 180;
         n++;
-        const id = Number(insPlot.run(`F-${String(n).padStart(2, '0')}`, 'FAM', `Anel ${ri + 1}`, 'Anfiteatro', String(n), JSON.stringify(rect(x, y, TYPES.FAM.w, TYPES.FAM.h, rot)), 0).lastInsertRowid);
-        if (rnd() < 0.55) fill(id, 'FAM', 1 + Math.floor(rnd() * 6));
+        const id = Number(insPlot.run(`F-${String(n).padStart(2, '0')}`, 'FAM', `Anel ${ri + 1}`, 'Anfiteatro', String(n),
+          JSON.stringify(rect(cx + R * Math.cos(a), cy + R * Math.sin(a), TYPES.FAM.w, TYPES.FAM.h, (a * 180) / Math.PI - 90)), 0).lastInsertRowid);
+        if (rnd() < 0.5) fill(id, 'FAM', 1 + Math.floor(rnd() * 6));
       }
     });
     // Histórico fictício de consultas no totem (45 dias) e respostas da pesquisa

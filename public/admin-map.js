@@ -57,11 +57,14 @@ export async function mapView(main, ctx) {
       <label>Colorir por</label><select id="cm"><option value="status">Ocupação</option><option value="type">Tipo de jazigo</option><option value="heat">Consultas (mapa de calor)</option></select>
       <label><input type="checkbox" id="mask" style="width:auto"> Ocultar imagem fora do limite (como no totem)</label>
       ${st.mode === 'place' || st.mode === 'poly' ? placeForm() : ''}
+      ${st.mode === 'recenter' ? `<h3>Escalar / girar tudo</h3><div class="f2"><div><label>Escala (%)</label><input id="rs" type="number" value="100" min="10" max="1000"></div><div><label>Girar (°)</label><input id="rr" type="number" value="0" min="-180" max="180"></div></div>
+        <button id="rapply" style="margin-top:.6rem">Aplicar (em torno do centro)</button><br><small class="m">Use para ajustar o tamanho e a orientação do layout à imagem real. Para mover, clique no mapa.</small>` : ''}
       ${st.mode === 'boundary' || st.mode === 'poly' ? `<div class="row2" style="margin-top:.8rem"><button class="primary" id="finish">Concluir (${st.draft.length} pontos)</button><button id="cancel">Cancelar</button></div>` : ''}
       <div id="selbox"></div>`;
     $('#cm').value = cem.colorMode; $('#mask').checked = maskOn;
     $('#cm').onchange = (e) => setColor(e.target.value); $('#mask').onchange = (e) => { maskOn = e.target.checked; cem.setMask(maskOn); };
     $$('.tools button', $('#side')).forEach((b) => (b.onclick = () => setMode(b.dataset.m)));
+    $('#rapply') && ($('#rapply').onclick = async () => { await api('/api/admin/recenter', { method: 'POST', body: { scale: Number($('#rs').value) / 100, rotDeg: Number($('#rr').value) } }); toast('Layout ajustado'); go('map'); });
     $('#finish') && ($('#finish').onclick = finishDraft); $('#cancel') && ($('#cancel').onclick = () => setMode(st.mode));
     bindPlaceForm(); renderSel();
   }
