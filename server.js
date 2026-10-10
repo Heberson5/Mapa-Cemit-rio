@@ -73,8 +73,8 @@ CREATE TABLE IF NOT EXISTS answers (
 const DEFAULT_CONFIG = {
   name: 'Memorial Santa Cruz',
   city: 'Tangará da Serra – MT',
-  // Coordenadas informadas pelo cliente (lat -14.636394, lng -57.4800372). Ajuste fino no editor do mapa.
-  center: [-57.4800372, -14.636394],
+  // Coordenadas informadas pelo cliente (14°38'10.82"S 57°28'48.41"W = -14.636339, -57.480114). Ajuste fino no editor do mapa.
+  center: [-57.480114, -14.636339],
   zoom: 17.5, pitch: 55, bearing: 0,
   boundary: null, entrance: null,
   tileUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
