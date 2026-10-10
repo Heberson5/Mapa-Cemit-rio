@@ -73,8 +73,8 @@ CREATE TABLE IF NOT EXISTS answers (
 const DEFAULT_CONFIG = {
   name: 'Memorial Santa Cruz',
   city: 'Tangará da Serra – MT',
-  // Ponto aproximado em Tangará da Serra: AJUSTE no painel (Configurações → clicar no cemitério).
-  center: [-57.4933, -14.6229],
+  // Coordenadas informadas pelo cliente (lat -14.636394, lng -57.4800372). Ajuste fino no editor do mapa.
+  center: [-57.4800372, -14.636394],
   zoom: 17.5, pitch: 55, bearing: 0,
   boundary: null, entrance: null,
   tileUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
