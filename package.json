@@ -1,0 +1,10 @@
+{
+  "name": "mapa-cemiterio",
+  "version": "0.1.0",
+  "description": "Mapa 3D e gestão do Memorial Santa Cruz – Tangará da Serra/MT",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22.13" },
+  "scripts": { "start": "node server.js", "vendor": "node scripts/vendor.js" },
+  "dependencies": { "maplibre-gl": "4.7.1", "xlsx": "0.18.5" }
+}

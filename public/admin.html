@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestão – Memorial Santa Cruz</title>
+<link rel="stylesheet" href="/vendor/maplibre-gl.css">
+<link rel="stylesheet" href="/style.css">
+<style>
+body{display:grid;grid-template-columns:210px 1fr;height:100vh;overflow:hidden}
+nav{background:#0b130e;border-right:1px solid var(--line);padding:1rem .7rem;display:flex;flex-direction:column;gap:.25rem}
+nav h1{font-size:1rem;margin:.2rem .5rem 1rem;color:var(--brand)}nav h1 small{display:block;color:var(--muted);font-weight:400}
+nav a{display:block;padding:.6rem .8rem;border-radius:9px;color:var(--ink);text-decoration:none;cursor:pointer}
+nav a:hover{background:var(--panel)}nav a.on{background:var(--panel2);color:var(--brand);font-weight:600}
+nav .sp{flex:1}
+main{overflow:auto;position:relative}
+.page{padding:1.4rem 1.8rem 3rem;max-width:1400px}
+h2{margin:.2rem 0 1rem}h3{margin:1.4rem 0 .5rem;font-size:1.05rem;color:var(--brand)}
+.grid{display:grid;gap:1rem}.g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.1rem}
+.kpi b{display:block;font-size:2rem}.kpi span{color:var(--muted);font-size:.85rem}
+.bar{display:grid;grid-template-columns:minmax(80px,200px) 1fr 44px;gap:.6rem;align-items:center;margin:.3rem 0;font-size:.88rem}
+.bar i{display:block;height:14px;border-radius:5px;background:linear-gradient(90deg,var(--brand),#c98f2a)}.bar span.l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cols{display:flex;align-items:flex-end;gap:2px;height:130px;margin-top:.5rem}.cols i{flex:1;min-width:2px;background:var(--brand);border-radius:3px 3px 0 0;opacity:.9}
+.cols i:hover{opacity:1;background:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:.45rem .6rem;border-bottom:1px solid var(--line);text-align:left}th{color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--panel)}
+tr.clk:hover{background:var(--panel2);cursor:pointer}
+.bar-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:end;margin-bottom:1rem}.bar-row>div{min-width:130px}.bar-row label{margin-top:0}
+.modal{position:fixed;inset:0;background:#000a;z-index:50;display:grid;place-items:center;padding:1rem}
+.modal>div{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.3rem;max-width:620px;width:100%;max-height:92vh;overflow:auto}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:0 .8rem}
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);background:#12301f;border:1px solid var(--ok);padding:.7rem 1.2rem;border-radius:10px;z-index:99}
+.toast.err{background:#3a1713;border-color:var(--bad)}
+#login{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:100}
+#login[hidden]{display:none}
+#login form{width:340px}
+/* mapa editor */
+.mapview{position:absolute;inset:0;display:grid;grid-template-columns:340px 1fr}
+.side{overflow:auto;padding:1rem;background:var(--panel);border-right:1px solid var(--line)}
+#amap{position:relative}#amap .mapbox{position:absolute;inset:0}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}.tools button.on{background:var(--brand);color:#241c05;border-color:var(--brand)}
+.hud{position:absolute;top:.7rem;left:.7rem;right:3.5rem;z-index:3;background:#0c1511e6;border:1px solid var(--line);border-radius:10px;padding:.5rem .8rem;font-size:.9rem;pointer-events:none}
+.legend{position:absolute;left:.7rem;bottom:1.8rem;z-index:3;background:#0c1511e6;border:1px solid var(--line);border-radius:10px;padding:.5rem .8rem;font-size:.8rem}
+small.m{color:var(--muted)}
+.nps-big{font-size:4rem;font-weight:800;line-height:1}
+.stack{display:flex;height:16px;border-radius:8px;overflow:hidden;margin:.6rem 0}
+.row2{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<nav id="nav"></nav>
+<main id="main"></main>
+<div id="login" hidden><form class="box" id="lf"><h2 style="margin-top:0">Acesso à gestão</h2>
+<label>Usuário</label><input name="user" value="admin" autocomplete="username"><label>Senha</label><input name="password" type="password" autocomplete="current-password">
+<p id="lerr" style="color:var(--bad)"></p><button class="primary" style="width:100%">Entrar</button></form></div>
+<script src="/vendor/maplibre-gl.js"></script>
+<script src="/vendor/xlsx.full.min.js"></script>
+<script type="module" src="/admin.js"></script>
+</body>
+</html>

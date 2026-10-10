@@ -1,0 +1,12 @@
+:root{--bg:#0f1a14;--panel:#16241c;--panel2:#1d3026;--line:#2b4637;--ink:#eaf2ec;--muted:#9bb2a4;--brand:#e9c46a;--accent:#2fe0ff;--ok:#4fb286;--warn:#e3b341;--bad:#cf5c47;--r:14px}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:.55em 1em;background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+button:hover{border-color:var(--brand)}button.primary{background:var(--brand);color:#241c05;border-color:var(--brand);font-weight:700}
+button.danger{background:#4a1f19;border-color:#7a3329}button:disabled{opacity:.45;cursor:default}
+input,select,textarea{font:inherit;color:var(--ink);background:#0d1712;border:1px solid var(--line);border-radius:10px;padding:.5em .7em;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);border-color:transparent}
+label{display:block;font-size:.8rem;color:var(--muted);margin:.6rem 0 .2rem}
+.maplibregl-ctrl-attrib{font-size:10px}
+.chip{display:inline-block;padding:.12em .6em;border-radius:99px;font-size:.78rem;border:1px solid var(--line);background:var(--panel2)}
+.sw{display:inline-block;width:.8em;height:.8em;border-radius:3px;margin-right:.4em;vertical-align:-1px}
